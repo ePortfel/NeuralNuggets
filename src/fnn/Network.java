@@ -57,10 +57,10 @@ public class Network
         for (int j=0;j<layer.neurons.size();j++)
         {
           Neuron n=layer.neurons.get(j);
-          double dsigma=0;
+          double dactvf=0;
           for (Connection c:n.outputs)
-            dsigma+=c.output.deltaactivf*c.weight;
-          n.deltaactivf=dsigma*Sigmoid.psigmoid(n.value);
+            dactvf+=c.output.deltaactivf*c.weight;
+          n.deltaactivf=dactvf*Sigmoid.psigmoid(n.value);
         }
       }
       for (Layer l:layers)
