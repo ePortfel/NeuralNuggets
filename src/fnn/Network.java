@@ -9,14 +9,20 @@ import java.util.Random;
  */
 public class Network
 {
+  Activator activator;
+  Optimizer optimizer;
   List<Layer> layers;
+  boolean debug;
   
-  public Network(List<Integer> layerSizes,Random random)
+  public Network(List<Integer> layerSizes, Random random, Activator a, Optimizer o,boolean debug)
   {
+    this.debug=debug;
+    activator=a;
+    optimizer=o;
     if (random==null) random=new Random();
     layers=new ArrayList<>(layerSizes.size());
     for (int i=0;i<layerSizes.size();i++)
-      layers.add(new Layer(layerSizes.get(i), random, "L"+i));
+      layers.add(new Layer(layerSizes.get(i), random, "L"+i, a));
     for (int i=0;i<layers.size()-1;i++)
     {
       Layer l1=layers.get(i);
@@ -45,30 +51,45 @@ public class Network
       List<Double> inputs=binputs.get(bitem);
       List<Double> targets=btargets.get(bitem);
       forward(inputs);
+      if (debug) System.out.println("Krok treningu dla wejścia "+Utils.dlist(inputs,2));
       Layer last=layers.get(layers.size()-1);
       for (int i=0;i<last.neurons.size();i++)
       {
         Neuron n=last.neurons.get(i);
-        n.deltaactivf=(targets.get(i)-n.value)*Sigmoid.psigmoid(n.value);
+        n.deltaactivf=(targets.get(i)-n.value)*activator.pactivator(n.value);
+        if (debug) 
+          System.out.println("Gradient dla połączeń *->"+n.name+"="+String.format("%.4f",n.deltaactivf)+" =("+targets.get(i)+"-"+String.format("%.4f",n.value)+")*Pochodna("+String.format("%.4f",n.value)+")");
       }
       for (int i=layers.size()-2;i>=0;i--)
       {
         Layer layer=layers.get(i);
         for (int j=0;j<layer.neurons.size();j++)
         {
+          List<Double> ssum=debug?new ArrayList<>():null;
           Neuron n=layer.neurons.get(j);
           double dactvf=0;
           for (Connection c:n.outputs)
-            dactvf+=c.output.deltaactivf*c.weight;
-          n.deltaactivf=dactvf*Sigmoid.psigmoid(n.value);
+          {
+            double s=c.output.deltaactivf*c.weight;
+            if (debug) ssum.add(s);
+            dactvf+=s;
+          }
+          n.deltaactivf=dactvf*activator.pactivator(n.value);
+          if (debug) 
+            System.out.println("Gradient dla połączeń *->"+n.name+"="+String.format("%.4f",n.deltaactivf)+" =SUMA"+Utils.dlist(ssum,4)+"*Pochodna("+String.format("%.4f",n.value)+")");
         }
       }
       for (Layer l:layers)
         for (Neuron n:l.neurons)
         {
-          n.addDeltaBias(n.deltaactivf*learningRate);
+          n.addDeltaBias(optimizer.countDeltaBias(n, n.deltaactivf, learningRate));
+          if (debug) System.out.println(n.name+" bias delta="+String.format("%.4f",n.deltaactivf*learningRate)+" ="+String.format("%.4f",n.deltaactivf)+"*"+learningRate);
           for (Connection c:n.outputs)
-            c.addDeltaWeight(c.output.deltaactivf*c.input.value*learningRate);
+          {
+            double deltaWeight=optimizer.countDeltaWeight(c,c.output.deltaactivf,c.input.value,learningRate);
+            c.addDeltaWeight(deltaWeight);
+            if (debug) System.out.println(c.input.name+"->"+c.output.name+" waga delta="+String.format("%.4f",c.output.deltaactivf*c.input.value*learningRate)+" ="+String.format("%.4f",c.output.deltaactivf)+"*"+String.format("%.4f",c.input.value)+"*"+learningRate);            
+          }
         }
     }
     for (Layer l:layers)

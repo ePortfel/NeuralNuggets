@@ -9,6 +9,8 @@ import java.util.Random;
  */
 public class Neuron
 {
+  Activator activator;
+  
   String name;
   Double value;
   Double bias;
@@ -18,10 +20,11 @@ public class Neuron
   Double deltaactivf;
   List<Double> deltabiases=new ArrayList<>();
   
-  public Neuron(Random random,String name)
+  public Neuron(Random random,String name,Activator a)
   {
     if (random==null) random=new Random();
     this.name=name;
+    activator=a;
     value=random.nextDouble()*2-1;
     bias=random.nextDouble()*2-1;
   }
@@ -31,7 +34,7 @@ public class Neuron
     value=bias;
     for (Connection ic:inputs)
       value+=ic.input.value*ic.weight;
-    value=Sigmoid.sigmoid(value);
+    value=activator.activator(value);
   }
 
   void addDeltaBias(double d)

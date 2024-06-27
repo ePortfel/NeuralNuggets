@@ -10,12 +10,15 @@ public class Demo
 {
   public static void main(String[] args)
   {
-    boolean swing=false;      // czy wyświetlać graficzną prezentację sieci
-    double learningRate=0.5;  // współczynnik "szybkości" uczenia
-    double iterations=1000;   // liczba iteracji uczenia
+    boolean swing=true;          // czy wyświetlać graficzną prezentację sieci
+    boolean debug=false;
+    double learningRate=0.1;      // współczynnik "szybkości" uczenia
+    double iterations=10000;       // liczba iteracji uczenia
+    Activator actf=new Sigmoid();
+    Optimizer opt=new ConstantRateOptimizer();
 
-    List<Integer> layerSizes = List.of(2, 2,2, 1);
-    Network network = new Network(layerSizes, new Random());
+    List<Integer> layerSizes = List.of(2,2,2,1);
+    Network network = new Network(layerSizes,new Random(),actf,opt,debug);
 
     // ustawienie parametrów sieci, można tę sekcję pominąć, wtedy parametry będą losowe
     List<List<List<Double>>> weights = 
@@ -57,19 +60,7 @@ public class Demo
   
   private static void report(boolean swing,Network network,List<Double> inputs,List<Double> targets)
   {
-    System.out.println("Wejście: "+dlist(inputs)+" wyjście: "+dlist(network.getOutput())+" cel: "+dlist(targets));
+    System.out.println("Wejście: "+Utils.dlist(inputs, 2)+" wyjście: "+Utils.dlist(network.getOutput(), 2)+" cel: "+Utils.dlist(targets, 2));
     if (swing) new Vizualizer(network, "Wartość docelowa "+targets.get(0)).setVisible(true); 
-  }
-  
-  private static String dlist(List<Double> list)
-  {
-    StringBuilder sb=new StringBuilder("(");
-    for (int i=0;i<list.size();i++) 
-    {
-      sb.append(String.format("%.2f", list.get(i)));
-      if (i<list.size()-1) sb.append(";");
-    }
-    sb.append(")");
-    return sb.toString();
-  }
+  }  
 }
