@@ -37,9 +37,9 @@ public class Demo
 
     // prezentacja działania sieci przed uczeniem
     network.forward(inputs.get(0));
-    report(swing,network,inputs.get(0),targets.get(0));
+    Utils.report(swing,network,inputs.get(0),targets.get(0),null);
     network.forward(inputs.get(1));
-    report(swing,network,inputs.get(1),targets.get(1));
+    Utils.report(swing,network,inputs.get(1),targets.get(1),null);
 
     // uczenie
     for (int i=1;i<=iterations;i++)
@@ -53,14 +53,8 @@ public class Demo
 
     // prezentacja sieci wytrenowanej
     network.forward(inputs.get(0));
-    report(swing,network,inputs.get(0),targets.get(0));
+    Utils.report(swing,network,inputs.get(0),targets.get(0),null);
     network.forward(inputs.get(1));
-    report(swing,network,inputs.get(1),targets.get(1));
-  }  
-  
-  private static void report(boolean swing,Network network,List<Double> inputs,List<Double> targets)
-  {
-    System.out.println("Wejście: "+Utils.dlist(inputs, 2)+" wyjście: "+Utils.dlist(network.getOutput(), 2)+" cel: "+Utils.dlist(targets, 2));
-    if (swing) new Vizualizer(network, "Wartość docelowa "+targets.get(0)).setVisible(true); 
+    Utils.report(swing,network,inputs.get(1),targets.get(1),null);
   }  
 }
